@@ -18,7 +18,6 @@ export default function CaseCards() {
 
   useEffect(() => {
     fetchCases();
-    // optionally: return a cleanup if you add realtime subscription
   }, []);
 
   async function fetchCases() {
@@ -31,7 +30,6 @@ export default function CaseCards() {
         setFetchError(error.message);
         setCases([]);
       } else {
-        // sort by created-at (desc) on client side because column has hyphen
         const sorted = (data || []).sort((a, b) => {
           const da = a?.['created-at'] ? new Date(a['created-at']) : new Date(0);
           const db = b?.['created-at'] ? new Date(b['created-at']) : new Date(0);
@@ -48,19 +46,16 @@ export default function CaseCards() {
     }
   }
 
-  // Called when CaseModal successfully inserts and returns the inserted row (data)
   function handleAddCase(newCase) {
-    // prepend new case to list
     setCases((prev) => [newCase, ...prev]);
   }
 
-  // simple status -> color mapping (so UI looks like before)
   function getStatusColors(status) {
     const s = (status || '').toLowerCase();
-    if (s.includes('progress') || s.includes('in progress')) {
+    if (s.includes('progress')) {
       return { dark: 'bg-blue-950 text-blue-300', light: 'bg-blue-100 text-blue-700' };
     }
-    if (s.includes('complete') || s.includes('completed')) {
+    if (s.includes('complete')) {
       return { dark: 'bg-green-950 text-green-300', light: 'bg-green-100 text-green-700' };
     }
     if (s.includes('pending')) {
@@ -79,13 +74,14 @@ export default function CaseCards() {
   return (
     <>
       {/* Search + New Case */}
-      <div className="max-w-xl mt-6 mb-4 flex gap-3 items-center mx-auto">
+      <div className="max-w-6xl mt-6 mb-4 flex gap-3 items-center mx-auto">
         <div
           className={`flex items-center gap-2 px-3 py-2 rounded-[15px] border transition-all duration-200 flex-1
-            ${isDarkMode 
-              ? 'bg-[#18181b] border-[#27272a] text-white focus-within:border-[#6366f1] focus-within:ring-1 focus-within:ring-[#6366f1]' 
-              : 'bg-white border-gray-200 text-gray-700 focus-within:border-[#4f46e5] focus-within:ring-1 focus-within:ring-[#4f46e5]'}`
-          }
+            ${
+              isDarkMode
+                ? 'bg-[#18181b] border-[#27272a] text-white focus-within:border-[#6366f1] focus-within:ring-1 focus-within:ring-[#6366f1]'
+                : 'bg-white border-gray-200 text-gray-700 focus-within:border-[#4f46e5] focus-within:ring-1 focus-within:ring-[#4f46e5]'
+            }`}
         >
           <Search className="w-4 h-4 text-gray-400" />
           <input
@@ -102,7 +98,11 @@ export default function CaseCards() {
         <button
           onClick={() => setIsModalOpen(true)}
           className={`flex items-center gap-2 px-4 py-2 rounded-[15px] font-medium transition-colors duration-200
-            ${isDarkMode ? 'bg-[#6366f1] text-white hover:bg-[#5558e3]' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+            ${
+              isDarkMode
+                ? 'bg-[#6366f1] text-white hover:bg-[#5558e3]'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700'
+            }`}
         >
           <Plus className="w-4 h-4" />
           <span className="text-sm">New Case</span>
@@ -110,47 +110,81 @@ export default function CaseCards() {
       </div>
 
       {/* Container */}
-      <div className={`${isDarkMode ? 'bg-[#0a0a0a]' : 'bg-gray-50'} max-w-3xl md:mx-0 mx-auto p-4`}>
-        {loading && <div className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-4`}>Loading cases...</div>}
+      <div className={`${isDarkMode ? 'bg-[#0a0a0a]' : 'bg-gray-50'} max-w-7xl mx-auto p-4`}>
+        {loading && (
+          <div className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-4`}>Loading cases...</div>
+        )}
         {fetchError && <div className="text-red-500 mb-4">Error: {fetchError}</div>}
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCases.map((caseItem) => {
             const statusColors = getStatusColors(caseItem?.status);
-            const created = caseItem?.['created-at'] ? new Date(caseItem['created-at']).toLocaleDateString() : '—';
-            const updated = caseItem?.['updated-at'] ? new Date(caseItem['updated-at']).toLocaleDateString() : created;
+            const created = caseItem?.['created-at']
+              ? new Date(caseItem['created-at']).toLocaleDateString()
+              : '—';
+            const updated = caseItem?.['updated-at']
+              ? new Date(caseItem['updated-at']).toLocaleDateString()
+              : created;
             const caseId = caseItem?.['case-id'] ?? caseItem?.id ?? '—';
             return (
               <div
                 key={caseId}
-                className={`${isDarkMode ? 'bg-[#18181b] border border-[#27272a]' : 'bg-white border border-gray-200'} hover:shadow-lg shadow-sm rounded-[15px] p-6 transition-shadow duration-200`}
+                className={`${
+                  isDarkMode
+                    ? 'bg-[#18181b] border border-[#27272a]'
+                    : 'bg-white border border-gray-200'
+                } hover:shadow-lg shadow-sm rounded-[15px] p-6 transition-shadow duration-200`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h2 className={`text-[18px] font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    <h2
+                      className={`text-[18px] font-semibold mb-1 ${
+                        isDarkMode ? 'text-white' : 'text-gray-900'
+                      }`}
+                    >
                       {caseItem?.['case-name'] ?? 'Untitled Case'}
                     </h2>
-                    <p className={`text-[15px] ${isDarkMode ? 'text-[#a1a1aa]' : 'text-gray-500'} mb-2`}>
+                    <p
+                      className={`text-[15px] ${
+                        isDarkMode ? 'text-[#a1a1aa]' : 'text-gray-500'
+                      } mb-2`}
+                    >
                       #{caseId}
                     </p>
                   </div>
 
-                  <span className={`px-3 py-1 rounded-full text-[11px] font-[600] ${isDarkMode ? statusColors.dark : statusColors.light}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-[11px] font-[600] ${
+                      isDarkMode ? statusColors.dark : statusColors.light
+                    }`}
+                  >
                     {caseItem?.status ?? 'Pending'}
                   </span>
                 </div>
 
-                <p className={`text-[15px] leading-relaxed ${isDarkMode ? 'text-[#a1a1aa]' : 'text-gray-500'} mb-6`}>
+                <p
+                  className={`text-[15px] leading-relaxed ${
+                    isDarkMode ? 'text-[#a1a1aa]' : 'text-gray-500'
+                  } mb-6`}
+                >
                   {caseItem?.['case-description'] ?? 'No description provided.'}
                 </p>
 
                 <div className="space-y-2 mb-4">
-                  <div className={`flex items-center text-[15px] ${isDarkMode ? 'text-[#a1a1aa]' : 'text-gray-500'}`}>
+                  <div
+                    className={`flex items-center text-[15px] ${
+                      isDarkMode ? 'text-[#a1a1aa]' : 'text-gray-500'
+                    }`}
+                  >
                     <Calendar className="w-4 h-4 mr-2" />
                     <span>Created {created}</span>
                   </div>
-                  <div className={`flex items-center text-[15px] ${isDarkMode ? 'text-[#a1a1aa]' : 'text-gray-500'}`}>
+                  <div
+                    className={`flex items-center text-[15px] ${
+                      isDarkMode ? 'text-[#a1a1aa]' : 'text-gray-500'
+                    }`}
+                  >
                     <Clock className="w-4 h-4 mr-2" />
                     <span>Updated {updated}</span>
                   </div>
@@ -159,7 +193,11 @@ export default function CaseCards() {
                 <Link
                   href={`/casedetail-page/${encodeURIComponent(caseId)}`}
                   className={`w-full text-[13px] flex items-center justify-center gap-2 px-4 py-1.5 rounded-[15px] font-medium transition-colors duration-200
-                    ${isDarkMode ? 'text-white border border-[#27272a] hover:bg-[#27272a] hover:text-[#4f46e5]' : 'text-gray-900 border border-gray-300 hover:bg-blue-50 hover:text-[#4f46e5]'}`}
+                    ${
+                      isDarkMode
+                        ? 'text-white border border-[#27272a] hover:bg-[#27272a] hover:text-[#4f46e5]'
+                        : 'text-gray-900 border border-gray-300 hover:bg-blue-50 hover:text-[#4f46e5]'
+                    }`}
                 >
                   <Eye className="w-4 h-4" />
                   View Details
@@ -169,19 +207,22 @@ export default function CaseCards() {
           })}
 
           {filteredCases.length === 0 && !loading && (
-            <p className={`col-span-full text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p
+              className={`col-span-full text-center ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+              }`}
+            >
               No cases found.
             </p>
           )}
         </div>
       </div>
 
-      {/* Modal - pass onAddCase to update UI when CaseModal inserts */}
+      {/* Modal */}
       <CaseModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAddCase={(newRow) => {
-          // newRow is the inserted row returned by Supabase (with hyphen keys)
           handleAddCase(newRow);
           setIsModalOpen(false);
         }}
