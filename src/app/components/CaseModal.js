@@ -33,8 +33,6 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
     title: '',
     description: '',
     caseType: '',
-    caseId: '',     // 👈 new field
-    status: 'In Progress', // 👈 default value
   });
   const [loading, setLoading] = useState(false);
 
@@ -43,16 +41,15 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
     setLoading(true);
 
     try {
-      // agar caseId user khali chor de to fallback random ID generate karna
-     const caseId = formData.caseId || `C-${Date.now()}`;
-
+      // fallback random ID generate karna
+      const caseId = `C-${Date.now()}`;
 
       const payload = {
         'case-name': formData.title,
         'case-description': formData.description,
         'case-type': formData.caseType,
-        status: formData.status,         // 👈 user ka chosen status
-        'case-id': formData.caseId,          // 👈 user ka ya fallback ID
+        status: 'In Progress',   
+        'case-id': caseId,       
         'created_at': new Date().toISOString(),
       };
 
@@ -71,7 +68,7 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
       if (onAddCase) onAddCase(data);
 
       // reset form
-      setFormData({ title: '', description: '', caseType: '', caseId: '', status: 'In Progress' });
+      setFormData({ title: '', description: '', caseType: '' });
       onClose();
     } catch (err) {
       console.error('Unexpected error:', err);
@@ -98,8 +95,6 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-    
-
           {/* Case Title */}
           <div className="space-y-2">
             <Label htmlFor="title">Case Title</Label>
@@ -109,17 +104,6 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Enter case title"
               required
-              className="rounded-[10px]"
-            />
-          </div>
-                {/* Case ID */}
-          <div className="space-y-2">
-            <Label htmlFor="caseId">Case ID</Label>
-            <Input
-              id="caseId"
-              value={formData.caseId}
-              onChange={(e) => setFormData({ ...formData, caseId: e.target.value })}
-              placeholder="Enter Case ID (optional)"
               className="rounded-[10px]"
             />
           </div>
@@ -142,25 +126,6 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
               </SelectContent>
             </Select>
           </div>
-
-          {/* Status */}
-          {/* Status */}
-<div className="space-y-2">
-  <Label htmlFor="status">Status</Label>
-  <Select
-    value={formData.status}
-    onValueChange={(value) => setFormData({ ...formData, status: value })}
-  >
-    <SelectTrigger className="rounded-[10px]">
-      <SelectValue placeholder="Select status" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="In Progress">In Progress</SelectItem>
-      <SelectItem value="Complete">Complete</SelectItem>
-    </SelectContent>
-  </Select>
-</div>
-
 
           {/* Description */}
           <div className="space-y-2">
