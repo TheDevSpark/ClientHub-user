@@ -1,20 +1,20 @@
 // Case Header Component
 "use client";
-import { useTheme } from "@/app/ThemeContext";
+import { useTheme } from "@/context/ThemeContext";
 
 export function CaseHeader({ title, caseId, status }) {
   const { isDarkMode } = useTheme();
 
   const statusColors = {
-    'In Progress': isDarkMode 
-      ? 'bg-blue-900/40 text-blue-400' 
-      : 'bg-blue-100 text-blue-700',
-    'Completed': isDarkMode 
-      ? 'bg-green-900/40 text-green-300' 
-      : 'bg-green-100 text-green-700',
-    'Pending': isDarkMode 
-      ? 'bg-yellow-900/40 text-yellow-400' 
-      : 'bg-yellow-100 text-yellow-700'
+    "In Progress": isDarkMode
+      ? "bg-blue-900/40 text-blue-400"
+      : "bg-blue-100 text-blue-700",
+    Completed: isDarkMode
+      ? "bg-green-900/40 text-green-300"
+      : "bg-green-100 text-green-700",
+    Pending: isDarkMode
+      ? "bg-yellow-900/40 text-yellow-400"
+      : "bg-yellow-100 text-yellow-700",
   };
 
   return (

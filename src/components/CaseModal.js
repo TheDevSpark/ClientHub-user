@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTheme } from '../ThemeContext';
-import { supabase } from '@/lib/supabaseClient';
+import { useState } from "react";
+import { useTheme } from "@/context/ThemeContext";
+import { supabase } from "@/lib/supabaseClient";
 
 import {
   Dialog,
@@ -12,27 +12,28 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from '@/app/components/ui/dialog';
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
-import { Textarea } from '@/app/components/ui/textarea';
-import { Label } from '@/app/components/ui/label';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectTrigger,
   SelectContent,
   SelectItem,
   SelectValue,
-} from '@/app/components/ui/select';
+} from "@/components/ui/select";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CaseModal({ isOpen, onClose, onAddCase }) {
   const { isDarkMode } = useTheme();
-
+  const { user } = useAuth();
   // internal form state
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    caseType: '',
+    title: "",
+    description: "",
+    caseType: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -41,38 +42,35 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
     setLoading(true);
 
     try {
-      // fallback random ID generate karna
-      const caseId = `C-${Date.now()}`;
-
       const payload = {
-        'case-name': formData.title,
-        'case-description': formData.description,
-        'case-type': formData.caseType,
-        status: 'In Progress',   
-        'case-id': caseId,       
-        'created_at': new Date().toISOString(),
+        name: formData.title,
+        description: formData.description,
+        type: formData.caseType,
+        status: "In Progress",
+        user_id: user?.id,
+        created_at: new Date().toISOString(),
       };
 
       const { data, error } = await supabase
-        .from('cases')
+        .from("cases")
         .insert([payload])
         .select()
         .single();
 
       if (error) {
-        console.error('Supabase insert error:', error);
-        alert('Error creating case: ' + error.message);
+        console.error("Supabase insert error:", error);
+        alert("Error creating case: " + error.message);
         return;
       }
 
       if (onAddCase) onAddCase(data);
 
       // reset form
-      setFormData({ title: '', description: '', caseType: '' });
+      setFormData({ title: "", description: "", caseType: "" });
       onClose();
     } catch (err) {
-      console.error('Unexpected error:', err);
-      alert('Unexpected error: ' + (err.message || err));
+      console.error("Unexpected error:", err);
+      alert("Unexpected error: " + (err.message || err));
     } finally {
       setLoading(false);
     }
@@ -83,8 +81,8 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
       <DialogContent
         className={`sm:max-w-[500px] rounded-[15px] border ${
           isDarkMode
-            ? 'bg-[#18181b] border-[#27272a] text-white'
-            : 'bg-white border-gray-200 text-gray-900'
+            ? "bg-[#18181b] border-[#27272a] text-white"
+            : "bg-white border-gray-200 text-gray-900"
         }`}
       >
         <DialogHeader>
@@ -101,7 +99,9 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
             <Input
               id="title"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               placeholder="Enter case title"
               required
               className="rounded-[10px]"
@@ -113,7 +113,9 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
             <Label htmlFor="caseType">Case Type</Label>
             <Select
               value={formData.caseType}
-              onValueChange={(value) => setFormData({ ...formData, caseType: value })}
+              onValueChange={(value) =>
+                setFormData({ ...formData, caseType: value })
+              }
             >
               <SelectTrigger className="rounded-[10px]">
                 <SelectValue placeholder="Select type" />
@@ -133,7 +135,9 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               placeholder="Enter case description"
               rows={4}
               required
@@ -143,13 +147,17 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline" className="rounded-[10px]">
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-[10px]"
+              >
                 Cancel
               </Button>
             </DialogClose>
 
             <Button type="submit" className="rounded-[10px]" disabled={loading}>
-              {loading ? 'Saving...' : 'Create Case'}
+              {loading ? "Saving..." : "Create Case"}
             </Button>
           </DialogFooter>
         </form>
