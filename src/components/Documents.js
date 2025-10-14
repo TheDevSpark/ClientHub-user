@@ -1,5 +1,5 @@
 "use client";
-import { useTheme } from "@/app/ThemeContext";
+import { useTheme } from "@/context/ThemeContext";
 import { Download, FileText, Upload } from "lucide-react";
 
 export function Documents({ documents }) {

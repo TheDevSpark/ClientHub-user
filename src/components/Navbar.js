@@ -1,31 +1,50 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { usePathname } from 'next/navigation'
-import Link from 'next/link'
-import { Home, Briefcase, FileText, User, Menu, X, Moon, Sun, Bell, LogOut } from 'lucide-react'
-import { useTheme } from '../ThemeContext'
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import {
+  Home,
+  Briefcase,
+  FileText,
+  User,
+  Menu,
+  X,
+  Moon,
+  Sun,
+  Bell,
+  LogOut,
+} from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
-  const { isDarkMode, toggleTheme } = useTheme()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const pathname = usePathname()
+  const { isDarkMode, toggleTheme } = useTheme();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const { user } = useAuth();
+  const getInitials = () => {
+    return user?.user_metadata?.full_name.split("")[0];
+  };
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const navItems = [
-    { href: '/', label: 'Home', icon: Home },
-    { href: '/case', label: 'My Cases', icon: Briefcase },
-    { href: '/documents', label: 'Documents', icon: FileText },
-    { href: '/profile', label: 'Profile', icon: User },
-  ]
+    { href: "/", label: "Home", icon: Home },
+    { href: "/case", label: "My Cases", icon: Briefcase },
+    { href: "/documents", label: "Documents", icon: FileText },
+    { href: "/profile", label: "Profile", icon: User },
+  ];
+  if (!user) return null;
 
   return (
-    <div className={isDarkMode ? 'dark' : ''}>
+    <div className={isDarkMode ? "dark" : ""}>
       <nav
         className={`${
-          isDarkMode ? 'bg-[#18181b] border-[#27272a]' : 'bg-white border-gray-200'
-        } text-sm border-b transition-colors px-1 sm:px-7 duration-200 fixed w-full z-50`}
+          isDarkMode
+            ? "bg-[#18181b] border-[#27272a]"
+            : "bg-white border-gray-200"
+        } text-sm border-b transition-colors px-1 sm:px-7 duration-200 fixed w-full z-50 top-0  `}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -33,14 +52,14 @@ export default function Navbar() {
             <div className="flex items-center gap-2">
               <div
                 className={`w-8 h-8 ${
-                  isDarkMode ? 'bg-[#6366f1]' : 'bg-indigo-600'
+                  isDarkMode ? "bg-[#6366f1]" : "bg-indigo-600"
                 } rounded-[20px] flex items-center justify-center`}
               >
                 <Briefcase className="w-5 h-5 text-white" />
               </div>
               <span
                 className={`text-[15px] font-[400] hidden sm:block ${
-                  isDarkMode ? 'text-white' : 'text-gray-900'
+                  isDarkMode ? "text-white" : "text-gray-900"
                 }`}
               >
                 ClientHub
@@ -50,8 +69,8 @@ export default function Navbar() {
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-2">
               {navItems.map((item) => {
-                const Icon = item.icon
-                const isActive = pathname === item.href
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
                 return (
                   <Link
                     key={item.href}
@@ -60,18 +79,18 @@ export default function Navbar() {
                       isActive
                         ? `${
                             isDarkMode
-                              ? 'bg-[#6366f1] text-white'
-                              : 'bg-indigo-600 text-white'
+                              ? "bg-[#6366f1] text-white"
+                              : "bg-indigo-600 text-white"
                           }`
                         : isDarkMode
-                        ? 'text-gray-300 hover:bg-gray-800 hover:text-[#6366f1]'
-                        : 'text-gray-500 hover:bg-blue-50 hover:text-[#4f46e5]'
+                        ? "text-gray-300 hover:bg-gray-800 hover:text-[#6366f1]"
+                        : "text-gray-500 hover:bg-blue-50 hover:text-[#4f46e5]"
                     }`}
                   >
                     <Icon className="w-4 h-4" />
                     <span>{item.label}</span>
                   </Link>
-                )
+                );
               })}
             </div>
 
@@ -83,20 +102,24 @@ export default function Navbar() {
                 className={`p-2 transition-colors duration-200
                   ${
                     isDarkMode
-                      ? 'text-white hover:bg-gray-800 hover:rounded-[15px]'
-                      : 'text-gray-800 hover:bg-blue-50 hover:text-[#4f46e5] hover:rounded-[15px]'
+                      ? "text-white hover:bg-gray-800 hover:rounded-[15px]"
+                      : "text-gray-800 hover:bg-blue-50 hover:text-[#4f46e5] hover:rounded-[15px]"
                   }
                 `}
               >
-                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                {isDarkMode ? (
+                  <Sun className="w-4 h-4" />
+                ) : (
+                  <Moon className="w-4 h-4" />
+                )}
               </button>
 
               {/* Notifications */}
               <button
                 className={`relative p-2 rounded-lg ${
                   isDarkMode
-                    ? 'text-white hover:bg-gray-800'
-                    : 'text-gray-800 hover:bg-blue-50 hover:text-[#4f46e5]'
+                    ? "text-white hover:bg-gray-800"
+                    : "text-gray-800 hover:bg-blue-50 hover:text-[#4f46e5]"
                 } transition-colors`}
               >
                 <Bell className="w-4 h-4" />
@@ -106,27 +129,41 @@ export default function Navbar() {
               {/* User Avatar */}
               <div
                 className={`lg:flex items-center gap-2 px-3 py-1 rounded-[15px] transition-colors duration-200
-                  ${isDarkMode ? 'hover:bg-gray-800 text-white' : 'hover:bg-blue-50 hover:text-[#4f46e5]'}
+                  ${
+                    isDarkMode
+                      ? "hover:bg-gray-800 text-white"
+                      : "hover:bg-blue-50 hover:text-[#4f46e5]"
+                  }
                 `}
               >
                 <div
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold
-                    ${isDarkMode ? 'bg-gray-800 text-[#4f46e5]' : 'bg-indigo-100 text-[#4f46e5]'}
+                    ${
+                      isDarkMode
+                        ? "bg-gray-800 text-[#4f46e5]"
+                        : "bg-indigo-100 text-[#4f46e5]"
+                    }
                   `}
                 >
-                  SJ
+                  {getInitials()}
                 </div>
-                <span className="hidden lg:inline text-sm font-medium">Sarah J.</span>
+                <span className="hidden lg:inline text-sm font-medium">
+                  {user?.user_metadata?.full_name}
+                </span>
               </div>
 
               {/* Mobile Menu Button */}
               <button
                 onClick={toggleMenu}
                 className={`lg:hidden p-2 rounded-lg ${
-                  isDarkMode ? 'text-gray-300' : 'text-gray-500'
+                  isDarkMode ? "text-gray-300" : "text-gray-500"
                 }`}
               >
-                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {isMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
               </button>
             </div>
           </div>
@@ -135,17 +172,21 @@ export default function Navbar() {
         {/* Mobile Sidebar - from right below navbar */}
         <div
           className={`lg:hidden fixed top-16 right-0 h-full w-64 border-l z-40
-            ${isDarkMode ? 'bg-[#18181b] border-[#27272a]' : 'bg-white border-gray-200'}
+            ${
+              isDarkMode
+                ? "bg-[#18181b] border-[#27272a]"
+                : "bg-white border-gray-200"
+            }
             shadow-lg transform transition-transform duration-300 ease-in-out
-            ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
+            ${isMenuOpen ? "translate-x-0" : "translate-x-full"}
           `}
         >
           <div className="flex flex-col h-full p-4">
             {/* Menu Items */}
             <div className="flex flex-col gap-1 mb-4">
               {navItems.map((item) => {
-                const Icon = item.icon
-                const isActive = pathname === item.href
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
                 return (
                   <Link
                     key={item.href}
@@ -155,25 +196,29 @@ export default function Navbar() {
                       isActive
                         ? `${
                             isDarkMode
-                              ? 'bg-[#6366f1] text-white'
-                              : 'bg-indigo-600 text-white'
+                              ? "bg-[#6366f1] text-white"
+                              : "bg-indigo-600 text-white"
                           }`
                         : isDarkMode
-                        ? 'text-gray-300 hover:bg-gray-800'
-                        : 'text-gray-500 hover:bg-gray-100'
+                        ? "text-gray-300 hover:bg-gray-800"
+                        : "text-gray-500 hover:bg-gray-100"
                     }`}
                   >
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
                   </Link>
-                )
+                );
               })}
             </div>
 
             {/* Logout */}
             <button
               className={`flex items-center gap-3 px-4 py-3 rounded-[15px] w-full mt-auto
-                ${isDarkMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-500 hover:bg-gray-100'}
+                ${
+                  isDarkMode
+                    ? "text-gray-300 hover:bg-gray-800"
+                    : "text-gray-500 hover:bg-gray-100"
+                }
                 transition-colors`}
             >
               <LogOut className="w-5 h-5" />
@@ -183,5 +228,5 @@ export default function Navbar() {
         </div>
       </nav>
     </div>
-  )
+  );
 }

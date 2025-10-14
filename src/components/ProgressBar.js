@@ -1,5 +1,5 @@
 "use client";
-import { useTheme } from "@/app/ThemeContext";
+import { useTheme } from "@/context/ThemeContext";
 
 export function CaseProgress({ percentage, message }) {
   const { isDarkMode } = useTheme();
@@ -44,9 +44,7 @@ export function CaseProgress({ percentage, message }) {
 
       {/* Message */}
       <p
-        className={`text-sm ${
-          isDarkMode ? "text-gray-400" : "text-gray-600"
-        }`}
+        className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
       >
         {message}
       </p>

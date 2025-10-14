@@ -1,5 +1,5 @@
 "use client";
-import { useTheme } from "@/app/ThemeContext";
+import { useTheme } from "@/context/ThemeContext";
 
 export function HelpSection() {
   const { isDarkMode } = useTheme();
