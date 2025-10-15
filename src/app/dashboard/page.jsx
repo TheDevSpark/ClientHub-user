@@ -106,16 +106,15 @@ function page(cases) {
           <CaseCards cases={cases} limit={4} />
         </div>
         <div className="ml-5">
-          <Link href="/case" passHref legacyBehavior>
-            <a
-              className={`flex items-center justify-center gap-2 px-9 py-2 rounded-[15px] font-medium transition-colors duration-200 ${
-                isDarkMode
-                  ? "bg-[#6366f1] text-white hover:bg-[#5558e3]"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700"
-              } mt-6`}
-            >
-              See More
-            </a>
+          <Link
+            href="/case"
+            className={`flex items-center justify-center gap-2 px-9 py-2 rounded-[15px] font-medium transition-colors duration-200 ${
+              isDarkMode
+                ? "bg-[#6366f1] text-white hover:bg-[#5558e3]"
+                : "bg-indigo-600 text-white hover:bg-indigo-700"
+            } mt-6`}
+          >
+            See More
           </Link>
         </div>
       </div>
