@@ -146,7 +146,8 @@ export default function CaseCards() {
 
         {/* Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCases.map((caseItem) => {
+          {/* filteredCases.slice(0, 4).map((caseItem) bss ye add ki hy  */}
+          {filteredCases.slice(0, 4).map((caseItem) => {
             const statusColors = getStatusColors(caseItem?.status);
             const created = caseItem?.["created_at"]
               ? new Date(caseItem["created_at"]).toLocaleDateString()
@@ -226,6 +227,7 @@ export default function CaseCards() {
               </div>
             );
           })}
+
 
           {filteredCases.length === 0 && !loading && (
             <p

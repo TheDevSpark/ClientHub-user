@@ -2,8 +2,9 @@
 import { useTheme } from "@/context/ThemeContext";
 import CaseCards from "@/components/CaseCard";
 import React from "react";
+import Link from "next/link";
 
-function page() {
+function page(cases) {
   const { isDarkMode } = useTheme();
   return (
     <>
@@ -102,7 +103,20 @@ function page() {
             </div>
           </div>
 
-          <CaseCards />
+          <CaseCards cases={cases} limit={4} />
+        </div>
+        <div className="ml-5">
+          <Link href="/case" passHref legacyBehavior>
+            <a
+              className={`flex items-center justify-center gap-2 px-9 py-2 rounded-[15px] font-medium transition-colors duration-200 ${
+                isDarkMode
+                  ? "bg-[#6366f1] text-white hover:bg-[#5558e3]"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700"
+              } mt-6`}
+            >
+              See More
+            </a>
+          </Link>
         </div>
       </div>
     </>

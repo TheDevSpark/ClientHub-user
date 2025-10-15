@@ -25,18 +25,21 @@ export default function SignupPage() {
 
     const toastId = toast.loading("Creating your account...");
 
-    // 1️⃣ Create a new user
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${location.origin}/auth/signin`,
-        data: {
-          full_name: name,
-          phone_number: phone,
-        },
-      },
-    });
+   const { data, error: signUpError } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    emailRedirectTo: `${location.origin}/auth/signin`,
+    data: {
+      full_name: name,
+      phone_number: phone,
+    },
+  },
+});
+console.log(`Email: '${email}'`);
+
+// Outside the options object
+console.log("SIGNUP ERROR:", signUpError);
 
     if (signUpError) {
       toast.dismiss(toastId);

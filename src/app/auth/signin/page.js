@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../../../lib/supabaseClinet";
+import { supabase } from "@/lib/supabaseClient";
+
 
 export default function SigninPage() {
   const [email, setEmail] = useState("");
