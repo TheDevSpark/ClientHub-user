@@ -21,7 +21,7 @@ export default function MyCasesPage() {
       const { data, error } = await supabase
         .from("cases")
         .select("case_id, name, description, created_at, updated_at")
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching cases:", error.message);

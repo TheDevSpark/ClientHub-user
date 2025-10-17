@@ -49,12 +49,16 @@ export function CaseInformation({
             Case Type
           </p>
           <p
-            className={`text-[14px] font-[400] ${
-              isDarkMode ? "text-white" : "text-gray-900"
-            }`}
-          >
-            {caseType}
-          </p>
+  className={`text-[14px] font-[400] ${
+    isDarkMode ? "text-white" : "text-gray-900"
+  }`}
+>
+  {caseType
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")}
+</p>
+
         </div>
 
         {/* Status */}

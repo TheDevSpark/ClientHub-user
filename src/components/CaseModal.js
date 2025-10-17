@@ -46,7 +46,7 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
         name: formData.title,
         description: formData.description,
         type: formData.caseType,
-        status: "In Progress",
+        status: "Review",
         user_id: user?.id,
         created_at: new Date().toISOString(),
       };
@@ -117,14 +117,15 @@ export default function CaseModal({ isOpen, onClose, onAddCase }) {
                 setFormData({ ...formData, caseType: value })
               }
             >
-              <SelectTrigger className="rounded-[10px]">
+              <SelectTrigger className="rounded-[10px] w-full">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="contract">Contract Review</SelectItem>
-                <SelectItem value="property">Property Dispute</SelectItem>
-                <SelectItem value="employment">Employment</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+              <SelectContent position="popper" side="bottom" align="end" sideOffset={4} className="min-w-[var(--radix-select-trigger-width)]">
+                <SelectItem value="non_pay">Non-Pay</SelectItem>
+                <SelectItem value="holdover">Holdover</SelectItem>
+                <SelectItem value="squatter">Squatter</SelectItem>
+                <SelectItem value="notice_termination_non_renewal">Notice of Termination/Non-Renewal</SelectItem>
+                <SelectItem value="warrant_judgment_warrant_eviction">Warrant and Judgment/Warrant of Eviction</SelectItem>
               </SelectContent>
             </Select>
           </div>

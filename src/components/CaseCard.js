@@ -16,9 +16,30 @@ export default function CaseCards() {
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(null);
 
-  useEffect(() => {
-    fetchCases();
-  }, []);
+useEffect(() => {
+  fetchCases();
+
+  // Subscribe to real-time changes in "cases"
+  const channel = supabase
+    .channel("cases-changes")
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "cases" },
+      (payload) => {
+        console.log("Case updated:", payload.new);
+        setCases((prevCases) =>
+          prevCases.map((c) =>
+            c.case_id === payload.new.case_id ? { ...c, ...payload.new } : c
+          )
+        );
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, []);
 
   async function fetchCases() {
     setLoading(true);
@@ -56,6 +77,12 @@ export default function CaseCards() {
 
   function getStatusColors(status) {
     const s = (status || "").toLowerCase();
+    if (s.includes("review")) {
+      return {
+        dark: "bg-purple-950 text-purple-300",
+        light: "bg-purple-100 text-purple-700",
+      };
+    }
     if (s.includes("progress")) {
       return {
         dark: "bg-blue-950 text-blue-300",
@@ -68,12 +95,13 @@ export default function CaseCards() {
         light: "bg-green-100 text-green-700",
       };
     }
-    if (s.includes("pending")) {
+    if (s.includes("Payment Pending")) {
       return {
         dark: "bg-yellow-950 text-yellow-300",
         light: "bg-yellow-100 text-yellow-700",
       };
     }
+
     return {
       dark: "bg-gray-800 text-gray-200",
       light: "bg-gray-100 text-gray-700",
