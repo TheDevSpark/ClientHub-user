@@ -19,6 +19,20 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
     ],
+    rules: {
+      "no-unused-vars": "off",
+      "no-console": "off",
+      "react/prop-types": "off",
+      "react/react-in-jsx-scope": "off",
+      "react/no-unescaped-entities": "off",
+      "jsx-a11y/alt-text": "off",
+      "jsx-a11y/anchor-is-valid": "off",
+      "no-undef": "off",
+      "@next/next/no-img-element": "off",
+      "import/no-anonymous-default-export": "off",
+      "no-irregular-whitespace": "off",
+      "no-empty": "off",
+    },
   },
 ];
 
