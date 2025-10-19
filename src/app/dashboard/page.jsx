@@ -28,7 +28,7 @@ function page(cases) {
           Track your cases and view updates.
         </p>
         <div
-          className={`min-h-screen ${
+          className={`min-h-[90%] ${
             isDarkMode ? "bg-[#0a0a0a]" : "bg-gray-50"
           }  transition-colors duration-200`}
         >
@@ -103,12 +103,12 @@ function page(cases) {
             </div>
           </div>
 
-          <CaseCards cases={cases} limit={4} />
+          <CaseCards cases={cases} limit={3} />
         </div>
         <div className="ml-5">
           <Link
             href="/case"
-            className={`flex items-center justify-center gap-2 px-9 py-2 rounded-[15px] font-medium transition-colors duration-200 ${
+            className={`flex items-center justify-center -mt-10 px-9 py-2 rounded-[15px] font-medium transition-colors duration-200 ${
               isDarkMode
                 ? "bg-[#6366f1] text-white hover:bg-[#5558e3]"
                 : "bg-indigo-600 text-white hover:bg-indigo-700"

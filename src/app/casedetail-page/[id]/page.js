@@ -143,7 +143,7 @@ export default function Page({ params }) {
           {/* Right Column */}
           <div className="space-y-6">
             <div>
-              <Documents documents={[]} />
+              <Documents case_id={case_id} />
             </div>
 
             <div>
@@ -152,9 +152,6 @@ export default function Page({ params }) {
           </div>
         </div>
       </div>
-
-
-      
     </div>
   );
 }

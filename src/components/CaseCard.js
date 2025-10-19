@@ -6,12 +6,13 @@ import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 import { supabase } from "@/lib/supabaseClient";
 import CaseModal from "./CaseModal";
+import { useAuth } from "@/context/AuthContext";
 
-export default function CaseCards() {
+export default function CaseCards({ limit }) {
   const { isDarkMode } = useTheme();
+  const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(null);
@@ -24,7 +25,11 @@ export default function CaseCards() {
     setLoading(true);
     setFetchError(null);
     try {
-      const { data, error } = await supabase.from("cases").select("*");
+      const { data, error } = await supabase
+        .from("cases")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
       if (error) {
         console.error("Supabase fetch error:", error);
         setFetchError(error.message);
@@ -147,7 +152,7 @@ export default function CaseCards() {
         {/* Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* filteredCases.slice(0, 4).map((caseItem) bss ye add ki hy  */}
-          {filteredCases.slice(0, 4).map((caseItem) => {
+          {filteredCases.slice(0, limit).map((caseItem) => {
             const statusColors = getStatusColors(caseItem?.status);
             const created = caseItem?.["created_at"]
               ? new Date(caseItem["created_at"]).toLocaleDateString()
@@ -227,7 +232,6 @@ export default function CaseCards() {
               </div>
             );
           })}
-
 
           {filteredCases.length === 0 && !loading && (
             <p
