@@ -2,8 +2,6 @@ import fs from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
 import createReport from "docx-templates";
-import { PDFDocument } from "pdf-lib"; // 👈 for PDF conversion
-import { execSync } from "child_process"; // 👈 to call LibreOffice if available
 
 export async function POST(req) {
   try {
@@ -17,6 +15,7 @@ export async function POST(req) {
     raw.forEach((q) => {
       if (typeof q.value === "object" && q.value !== null) {
         Object.entries(q.value).forEach(([k, v]) => {
+          // Convert spaces in name to underscores for valid placeholders
           const key = `${q.name.replace(/\s+/g, "_")}_${k}`;
           data[key] = v;
         });
@@ -44,47 +43,23 @@ export async function POST(req) {
 
     const template = fs.readFileSync(templatePath);
 
-    // ✅ Generate DOCX buffer
-    const docxBuffer = await createReport({
+    // ✅ Generate DOCX
+    const buffer = await createReport({
       template,
       data,
       cmdDelimiter: ["{", "}"],
     });
 
-    // ✅ Convert DOCX → PDF (requires LibreOffice installed)
-    const tempDocx = path.join(process.cwd(), "temp.docx");
-    const tempPdf = path.join(process.cwd(), "temp.pdf");
-    fs.writeFileSync(tempDocx, docxBuffer);
+    const fileName = `${formName}-${Date.now()}.docx`;
 
-    try {
-      execSync(
-        `soffice --headless --convert-to pdf "${tempDocx}" --outdir "${process.cwd()}"`
-      );
-      const pdfBuffer = fs.readFileSync(tempPdf);
-
-      // cleanup
-      fs.unlinkSync(tempDocx);
-      fs.unlinkSync(tempPdf);
-
-      const fileName = `${formName}-${Date.now()}.pdf`;
-
-      return new NextResponse(pdfBuffer, {
-        status: 200,
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename="${fileName}"`,
-        },
-      });
-    } catch (pdfErr) {
-      console.error("PDF conversion failed:", pdfErr);
-      return NextResponse.json(
-        {
-          error:
-            "Failed to convert DOCX to PDF. Make sure LibreOffice is installed.",
-        },
-        { status: 500 }
-      );
-    }
+    return new NextResponse(buffer, {
+      status: 200,
+      headers: {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "Content-Disposition": `attachment; filename="${fileName}"`,
+      },
+    });
   } catch (err) {
     console.error("Generate-doc API error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

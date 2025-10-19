@@ -19,14 +19,14 @@ export default function MyCasesPage() {
   const { user } = useAuth();
 
   // ✅ Fetch cases from Supabase
-  useEffect(() => {
-    const fetchCases = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("cases")
-        .select("case_id, name, description, created_at, updated_at")
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: true });
+  const fetchCases = async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("cases")
+      .select("case_id, name, description, created_at, updated_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true });
 
     if (error) {
       console.error("Error fetching cases:", error.message);
@@ -38,7 +38,7 @@ export default function MyCasesPage() {
 
   useEffect(() => {
     fetchCases();
-  }, []);
+  }, [user]);
 
   // ✅ Handle delete confirmation
   const confirmDelete = (caseId) => {
@@ -102,7 +102,7 @@ export default function MyCasesPage() {
       <h1
         className={`${
           isDarkMode ? "text-gray-400" : "text-gray-900"
-        } text-2xl font-bold mt-[50px]  mb-7`}
+        } text-2xl font-bold mt-[50px] mb-7`}
       >
         My Cases
       </h1>
