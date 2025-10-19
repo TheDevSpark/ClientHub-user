@@ -23,7 +23,7 @@ export default function Page({ params }) {
 
   const [caseData, setCaseData] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [caseItem, setCaseItem] = useState(null);
   const getCurrentCase = async () => {
     // 1. Start loading
     setLoading(true);
@@ -40,7 +40,8 @@ export default function Page({ params }) {
       toast.error(error.message);
       setCaseData(null);
     } else {
-      setCaseData(data);
+     setCaseData(data);
+  setCaseItem(data); 
     }
 
     // 4. End loading
@@ -136,7 +137,11 @@ export default function Page({ params }) {
             </div>
 
             <div>
-              <CaseUpdates updates={[]} />
+           {caseItem ? (
+  <CaseUpdates caseId={caseItem.case_id} />
+) : (
+  <p>Loading case details...</p>
+)}
             </div>
           </div>
 
