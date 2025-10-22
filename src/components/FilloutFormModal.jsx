@@ -18,56 +18,81 @@ const FilloutFormModal = ({
 }) => {
   const { isDarkMode } = useTheme();
 
-  const handleSubmission = async (submission) => {
-    console.log("🎯 Fillout form submitted!", submission);
+const handleSubmission = async (submission) => {
+  console.log("🎯 Fillout form submitted!", submission);
 
-    const submissionId = submission;
-    const formIdLocal = formId;
+  // ✅ Handle both object and string cases
+  const submissionId =
+    typeof submission === "string"
+      ? submission
+      : submission?.submissionId || submission?.id;
 
-    try {
-      const res = await fetch(
-        `https://api.fillout.com/v1/api/forms/${formIdLocal}/submissions/${submissionId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_FILLOUT_API_KEY}`,
-          },
-        }
-      );
+  const formIdLocal = formId;
 
-      const data = await res.json();
+  if (!submissionId) {
+    console.error("❌ Missing submissionId in Fillout submission:", submission);
+    return;
+  }
 
-      // 🔹 Extract answers in key:value form
-      const answersObj = {};
-      data.answers?.forEach((ans) => {
-        if (typeof ans.value === "object" && ans.value !== null) {
-          // flatten address or similar nested answers
-          Object.entries(ans.value).forEach(([key, val]) => {
-            answersObj[`${ans.id}_${key}`] = val;
-          });
-        } else {
-          answersObj[ans.id] = ans.value;
-        }
+  try {
+    console.log("📡 Fetching Fillout data for:", formIdLocal, submissionId);
+
+    const res = await fetch(
+      `https://api.fillout.com/v1/api/forms/${formIdLocal}/submissions/${submissionId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_FILLOUT_API_KEY}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+    console.log("✅ Fillout API data:", data);
+
+    if (!res.ok) {
+      console.error("❌ Fillout API error:", data);
+      return;
+    }
+
+    // Extract answers and questions
+    const questionsList = [];
+    const answersObj = {};
+
+    data.answers?.forEach((ans) => {
+      questionsList.push({
+        id: ans.id,
+        question: ans.name || ans.question || "Unnamed Question",
+        type: ans.type,
+        value: ans.value,
       });
 
-      // 🔹 Format same as your working example
-      const formattedSubmission = {
-        title:
-          forms.find((f) => f.id === formIdLocal)?.formName ||
-          "Untitled Document",
-        answers: answersObj,
-        form_id: formIdLocal,
-        raw_data: data,
-        questions: data.questions || [],
-        submitted_at: data.submissionTime,
-        submission_id: submissionId,
-      };
+      if (typeof ans.value === "object" && ans.value !== null) {
+        Object.entries(ans.value).forEach(([key, val]) => {
+          answersObj[`${ans.id}_${key}`] = val;
+        });
+      } else {
+        answersObj[ans.id] = ans.value;
+      }
+    });
 
-      onFormSubmit(formattedSubmission);
-      onOpenChange(false);
-    } catch (err) {
-      console.error("❌ Failed to fetch or format submission:", err);
-    }
-  };
+    const formattedSubmission = {
+      title:
+        forms.find((f) => f.id === formIdLocal)?.formName ||
+        "Untitled Document",
+      answers: answersObj,
+      form_id: formIdLocal,
+      raw_data: data,
+      questions: questionsList,
+      submitted_at: data.submissionTime,
+      submission_id: submissionId,
+    };
+
+    onFormSubmit(formattedSubmission);
+    onOpenChange(false);
+  } catch (err) {
+    console.error("❌ Failed to fetch or format submission:", err);
+  }
+};
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
