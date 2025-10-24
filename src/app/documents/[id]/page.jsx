@@ -1,26 +1,33 @@
 "use client";
-import { Plus, Eye, FileDown } from "lucide-react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { FilloutFullScreenEmbed } from "@fillout/react";
+import { Edit, Plus } from "lucide-react";
 import React, { use, useEffect, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { forms } from "@/lib/forms";
-import DocAddModal from "@/components/DocAddModal";
-import FilloutFormModal from "@/components/FilloutFormModal";
 import DocumentViewer from "@/components/DocumentViewer";
 
 export default function Page({ params }) {
-  const { id } = use(params);
+  const { id } = use(params); // ✅ fixed
   const { user } = useAuth();
   const { isDarkMode } = useTheme();
+  const formToUse = "cVwc6SbbX9us";
 
   const [docs, setDocs] = useState([]);
-  const [details, setDetails] = useState([]);
   const [open, setOpen] = useState(false);
-  const [filloutOpen, setFilloutOpen] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
-  const [selectedForm, setSelectedForm] = useState(null);
   const [selectedDocument, setSelectedDocument] = useState(null);
+  const [allFormData, setAllFormData] = useState([]);
+  const [isEditing, setIsEditing] = useState(false); // ✅ NEW STATE
 
   // ✅ Fetch documents for this case
   const getCaseDocs = async () => {
@@ -42,102 +49,91 @@ export default function Page({ params }) {
         submitted_at: doc.form_data?.submitted_at,
       })) || [];
 
+    const allFormDataArr = [];
+    transformedData.map((data) => {
+      allFormDataArr.push(data.form_data);
+    });
+
+    setAllFormData(allFormDataArr[0]);
     setDocs(transformedData);
-  };
-
-  // Fetch case details (optional)
-  const getDetails = async () => {
-    const { data, error } = await supabase
-      .from("cases")
-      .select("*")
-      .eq("case_id", id);
-
-    if (error) console.error("Error fetching case details:", error);
-    setDetails(data || []);
   };
 
   useEffect(() => {
     getCaseDocs();
-    getDetails();
   }, []);
 
-  // Handle form selection
-  const handleFormSelect = (form) => {
-    setSelectedForm(form);
-    setOpen(false);
-    setFilloutOpen(true);
-  };
-
-  // ✅ Handle form submission (after Fillout form completed)
-  const handleFormSubmit = async (submission) => {
+  // ✅ Handle Fillout form submission (merged logic + edit handling)
+  const handleFormSubmit = async (submissionId, formId) => {
     try {
-      if (!user?.id) throw new Error("User ID is missing");
+      console.log("🎯 Fillout form submitted!", submissionId);
 
+      const res = await fetch(
+        `https://api.fillout.com/v1/api/forms/${formId}/submissions/${submissionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_FILLOUT_API_KEY}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      // 🔹 Extract answers in key:value form
+      const answersObj = {};
+      data.answers?.forEach((ans) => {
+        if (typeof ans.value === "object" && ans.value !== null) {
+          Object.entries(ans.value).forEach(([key, val]) => {
+            answersObj[`${ans.id}_${key}`] = val;
+          });
+        } else {
+          answersObj[ans.id] = ans.value;
+        }
+      });
+
+      // 🔹 Format submission data
       const formattedSubmission = {
-        case_id: id, // ensure this is a valid UUID
-        user_id: user.id, // ensure this is a valid UUID
+        submitter_name: user?.user_metadata?.full_name,
+        form_id: formId,
+        data: data?.submission?.questions,
+        submitted_at: data?.submission?.submissionTime,
+        submission_id: submissionId,
+      };
+
+      const formattedDoc = {
+        case_id: id,
+        user_id: user.id,
         form_data: {
-          title: selectedForm.formName,
-          answers: submission.answers || {},
-          form_id: submission.form_id || selectedForm.id,
-          form_name: selectedForm.formName,
-          raw_data: submission,
-          questions: submission.questions || [],
-          submitted_at: new Date().toISOString(),
-          submission_id: submission.submission_id || crypto.randomUUID(),
+          title:
+            forms.find((f) => f.id === formId)?.formName ||
+            "Eviction Notice Form",
+          ...formattedSubmission,
         },
         created_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
-        .from("documents")
-        .insert([formattedSubmission]);
+      // ✅ If editing, update the existing record instead of inserting
+      if (isEditing) {
+        const { error: updateError } = await supabase
+          .from("documents")
+          .update(formattedDoc)
+          .eq("case_id", id)
+          .eq("user_id", user.id);
 
-      if (error) throw error;
-
-      await getCaseDocs();
-      setFilloutOpen(false);
-      setSelectedForm(null);
-    } catch (err) {
-      console.error("Error saving form submission:", err);
-    }
-  };
-
-
-  
-
-  // View document handler
-  const handleViewDocument = (doc) => {
-    setSelectedDocument(doc);
-    setViewerOpen(true);
-  };
-
-  // Generate Word document
-  const handleGenerateDoc = async (doc) => {
-    try {
-      const res = await fetch("/api/generate-doc", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ document: doc }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        console.error("Error:", err);
-        alert(err.error || "Failed to generate document");
-        return;
+        if (updateError) throw updateError;
+        console.log("✅ Document updated successfully");
+        setIsEditing(false);
+      } else {
+        const { error } = await supabase
+          .from("documents")
+          .insert([formattedDoc]);
+        if (error) throw error;
+        console.log("✅ Document added successfully");
       }
 
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${doc.title || "document"}.docx`;
-      a.click();
-      window.URL.revokeObjectURL(url);
+      await getCaseDocs();
+      setOpen(false);
     } catch (err) {
-      console.error("Download failed:", err);
-      alert("Something went wrong while generating the document");
+      console.error("❌ Error fetching or saving submission:", err);
     }
   };
 
@@ -154,71 +150,68 @@ export default function Page({ params }) {
             ? "bg-gray-800 hover:bg-gray-700"
             : "bg-gray-300 hover:bg-gray-400"
         }`}
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setIsEditing(false);
+          setOpen(true);
+        }}
       >
         <Plus className={isDarkMode ? "text-white" : "text-black"} />
       </div>
-      <h1 className="font-bold py-2">No Documents Found. Create One!</h1>
+      <h1 className="font-bold py-2">No Data Found. Fill Out The Form!</h1>
     </div>
   );
 
   // Documents list view
   const DocumentsList = () => (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Documents</h1>
-      <ul className="space-y-3">
-        {docs.map((doc, index) => (
-          <li
-            key={index}
-            className={`p-4 rounded-lg shadow ${
-              isDarkMode ? "bg-gray-800" : "bg-white"
-            }`}
-          >
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="font-medium">{doc.title}</h2>
-                {doc.submission_id && (
-                  <div className="mt-2 text-sm text-gray-500">
-                    <p>
-                      Submitted:{" "}
-                      {new Date(doc.submitted_at).toLocaleDateString()}
-                    </p>
-                    <p>Submission ID: {doc.submission_id}</p>
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleViewDocument(doc)}
-                  className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700"
-                >
-                  <Eye size={16} />
-                  View
-                </button>
+    <div className="p-6 mt-[5%] flex flex-col">
+      <div className="flex justify-between">
+        <div></div>
+        <h1 className="text-2xl font-semibold mb-4 text-center">
+          {allFormData?.title}
+        </h1>
+        <div
+          className="cursor-pointer"
+          onClick={() => {
+            setIsEditing(true);
+            setOpen(true);
+          }}
+        >
+          <Edit />
+        </div>
+      </div>
 
-                <button
-                  onClick={() => handleGenerateDoc(doc)}
-                  className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  <FileDown size={16} />
-                  Download
-                </button>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <div className="flex flex-col px-10 ">
+        {allFormData?.data
+          ?.filter((data) => {
+            const val = data.value;
+            const displayValue =
+              typeof val === "object" && val !== null
+                ? val.value ?? JSON.stringify(val)
+                : val;
 
-      <button
-        onClick={() => setOpen(true)}
-        className={`mt-6 px-4 py-2 rounded-md flex items-center gap-2 ${
-          isDarkMode
-            ? "bg-gray-700 hover:bg-gray-600 text-white"
-            : "bg-blue-600 hover:bg-blue-500 text-white"
-        }`}
-      >
-        <Plus size={18} /> Add Document
-      </button>
+            // Skip null, "null", undefined, or empty string values
+            return (
+              displayValue !== null &&
+              displayValue !== "null" &&
+              displayValue !== undefined &&
+              displayValue !== ""
+            );
+          })
+          .map((data, index) => {
+            const val = data.value;
+            const displayValue =
+              typeof val === "object" && val !== null
+                ? val.value ?? JSON.stringify(val)
+                : val;
+
+            return (
+              <div key={index}>
+                <h1 className="font-bold">{data.name}</h1>
+                <p>{String(displayValue)}</p>
+              </div>
+            );
+          })}
+      </div>
     </div>
   );
 
@@ -230,21 +223,28 @@ export default function Page({ params }) {
     >
       {docs.length <= 0 ? <EmptyState /> : <DocumentsList />}
 
-      <DocAddModal
-        open={open}
-        onOpenChange={setOpen}
-        onFormSelect={handleFormSelect}
-        forms={forms}
-      />
-
-      {/* ✅ make sure FilloutFormModal calls onFormSubmit with full data */}
-      <FilloutFormModal
-        open={filloutOpen}
-        onOpenChange={setFilloutOpen}
-        formId={selectedForm?.id}
-        forms={forms}
-        onFormSubmit={handleFormSubmit}
-      />
+      {/* ✅ Fillout Form Modal */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] w-full">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-center">
+              {isEditing ? "Edit Form" : "Fill out Form"} -{" "}
+              {forms.find((f) => f.id === formToUse)?.formName}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Fill out the form to generate your document
+            </DialogDescription>
+          </DialogHeader>
+          <div className="w-full h-[70vh]">
+            <FilloutFullScreenEmbed
+              filloutId={formToUse}
+              onSubmit={(submissionId) =>
+                handleFormSubmit(submissionId, formToUse)
+              }
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <DocumentViewer
         open={viewerOpen}

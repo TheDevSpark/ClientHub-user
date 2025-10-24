@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Calendar, Clock, Search, Eye } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/context/AuthContext";
 
 export default function DocumentPage() {
   const { isDarkMode } = useTheme();
@@ -13,6 +14,7 @@ export default function DocumentPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const itemsPerPage = 10;
+  const { user } = useAuth();
 
   // ✅ Fetch cases from Supabase
   useEffect(() => {
@@ -21,6 +23,7 @@ export default function DocumentPage() {
       const { data, error } = await supabase
         .from("cases")
         .select("case_id, name, description, created_at, updated_at")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {

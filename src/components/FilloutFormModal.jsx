@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { FilloutFullScreenEmbed } from "@fillout/react";
 import { useTheme } from "@/context/ThemeContext";
+import { useAuth } from "@/context/AuthContext";
 
 const FilloutFormModal = ({
   open,
@@ -17,7 +18,7 @@ const FilloutFormModal = ({
   onFormSubmit,
 }) => {
   const { isDarkMode } = useTheme();
-
+  const { user } = useAuth();
   const handleSubmission = async (submission) => {
     console.log("🎯 Fillout form submitted!", submission);
 
@@ -48,16 +49,13 @@ const FilloutFormModal = ({
           answersObj[ans.id] = ans.value;
         }
       });
+      console.log(answersObj);
 
       // 🔹 Format same as your working example
       const formattedSubmission = {
-        title:
-          forms.find((f) => f.id === formIdLocal)?.formName ||
-          "Untitled Document",
-        answers: answersObj,
+        submitter_name: user?.user_metadata?.full_name,
+        answers: data.raw_data?.submissions?.questions[0],
         form_id: formIdLocal,
-        raw_data: data,
-        questions: data.questions || [],
         submitted_at: data.submissionTime,
         submission_id: submissionId,
       };

@@ -16,6 +16,7 @@ export async function generateDocument(raw_data, form_name) {
       let err;
       try {
         err = await res.json();
+        console.log(err);
       } catch (error) {
         err = { error: error };
       }
@@ -28,7 +29,10 @@ export async function generateDocument(raw_data, form_name) {
 
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${(form_name || "document").replace(/\s+/g, "-")}.docx`;
+    link.download = `${(form_name + "-" + Date.now() || "document").replace(
+      /\s+/g,
+      "-"
+    )}.docx`;
     document.body.appendChild(link);
     link.click();
     link.remove();

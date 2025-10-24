@@ -10,22 +10,21 @@ export async function POST(req) {
     const formName = body.form_name || "default";
     const raw = body?.raw_data?.raw_data?.submission?.questions || [];
 
-    // ✅ Dynamically flatten question data for placeholders like {Matter Address_address}
+    // ✅ Flatten all question data dynamically
     const data = {};
     raw.forEach((q) => {
       if (typeof q.value === "object" && q.value !== null) {
         Object.entries(q.value).forEach(([k, v]) => {
-          // Convert spaces in name to underscores for valid placeholders
-          const key = `${q.name.replace(/\s+/g, "_")}_${k}`;
+          const key = `${q.name.replace(/[^a-zA-Z0-9]/g, "_")}_${k}`;
           data[key] = v;
         });
       } else {
-        const key = q.name.replace(/\s+/g, "_");
+        const key = q.name.replace(/[^a-zA-Z0-9]/g, "_");
         data[key] = q.value ?? "";
       }
     });
 
-    // ✅ Dynamic template path based on form name
+    // ✅ Dynamic template path
     const safeFileName = formName.replace(/[^\w\-]/g, "_") + ".docx";
     const templatePath = path.join(
       process.cwd(),
@@ -43,11 +42,13 @@ export async function POST(req) {
 
     const template = fs.readFileSync(templatePath);
 
-    // ✅ Generate DOCX
+    // ✅ Generate DOCX safely without JS evaluation
     const buffer = await createReport({
       template,
       data,
+      noSandbox: true,
       cmdDelimiter: ["{", "}"],
+      parser: (tag) => (scope) => scope[tag], // 👈 Key line — prevents ReferenceError
     });
 
     const fileName = `${formName}-${Date.now()}.docx`;
